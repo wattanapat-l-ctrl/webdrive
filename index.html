@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlimited Drive - Google API</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --g-blue: #1a73e8; --border: #dadce0; --bg: #f1f3f4; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: white; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; padding: 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        .btn-new {
+            width: fit-content; padding: 12px 24px; border-radius: 30px; border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3); background: white; cursor: pointer;
+            margin: 10px 0 20px 5px; display: flex; align-items: center; gap: 12px; font-weight: 500;
+        }
+        .nav-item { padding: 12px 20px; border-radius: 0 25px 25px 0; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 15px; color: #3c4043; }
+        .nav-item.active { background: #e8f0fe; color: var(--g-blue); font-weight: 500; }
+        
+        /* Storage Meter */
+        .storage-box { margin-top: auto; padding: 20px; border-top: 1px solid #eee; }
+        .progress-bg { width: 100%; background: #eee; height: 4px; border-radius: 2px; margin-top: 8px; }
+        .progress-fill { width: 40%; background: var(--g-blue); height: 100%; border-radius: 2px; }
+
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .header { height: 64px; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); gap: 20px; }
+        .search-bar { flex: 1; max-width: 720px; background: var(--bg); border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 12px; }
+        .search-bar input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
+
+        .content { padding: 24px; overflow-y: auto; flex: 1; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+
+        /* File Card */
+        .card { border: 1px solid var(--border); border-radius: 8px; position: relative; background: white; overflow: hidden; }
+        .card-preview { height: 120px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .card-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .card-preview i { font-size: 40px; color: #bdc1c6; }
+        .card-footer { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; border-top: 1px solid var(--border); }
+
+        .actions { display: none; position: absolute; top: 5px; right: 5px; gap: 5px; background: rgba(255,255,255,0.9); padding: 4px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card:hover .actions { display: flex; }
+        .action-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background: #eee; }
+
+        .auth-overlay { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .toast { position: fixed; bottom: 20px; left: 20px; background: #323232; color: white; padding: 12px 20px; border-radius: 4px; display: none; z-index: 10000; }
+    </style>
+</head>
+<body>
+
+    <div id="authScreen" class="auth-overlay">
+        <i class="fab fa-google-drive" style="font-size: 80px; color: #4285F4; margin-bottom: 20px;"></i>
+        <h2>Unlimited Cloud Drive</h2>
+        <p>กรุณาลงชื่อเข้าใช้ด้วย Google Account ของคุณ</p>
+        <button class="btn-new" onclick="handleAuth()" style="box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18">
+            Login with Google
+        </button>
+    </div>
+
+    <div class="sidebar">
+        <div style="padding:15px; font-size:22px; color:#5f6368; font-weight: 500;">
+            <i class="fab fa-google-drive" style="color:#4285F4"></i> Drive
+        </div>
+        <button class="btn-new" onclick="document.getElementById('fileIn').click()">
+            <i class="fa fa-plus fa-lg"></i> New
+        </button>
+        <div class="nav-item active"><i class="fa fa-folder"></i> My Unlimited Drive</div>
+        <div class="nav-item" onclick="handleSignout()"><i class="fa fa-sign-out-alt"></i> Sign Out</div>
+        
+        <div class="storage-box">
+            <div style="font-size: 12px; color: #5f6368;">
+                <i class="fa fa-cloud"></i> ใช้ไปแล้ว <span id="usageLabel">0 MB</span>
+            </div>
+            <div class="progress-bg"><div class="progress-fill" style="width: 100%;"></div></div>
+            <div style="font-size: 10px; color: #999; margin-top: 5px;">บัญชีพื้นที่ไม่จำกัด</div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <div class="search-bar">
+                <i class="fa fa-search" style="color: #5f6368;"></i>
+                <input type="text" id="searchIn" placeholder="ค้นหาไฟล์ใน Google Drive" oninput="doSearch()">
+            </div>
+        </div>
+        <div class="content">
+            <h3 style="font-weight: 400; margin-bottom: 20px;">ไฟล์ทั้งหมด</h3>
+            <div id="fileGrid" class="grid"></div>
+        </div>
+    </div>
+
+    <input type="file" id="fileIn" style="display:none" onchange="uploadFile()">
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // --- ส่วนที่ต้องแก้ไข ---
+        const API_KEY = 'AIzaSyDNc8q0m7n-ccjrof2niaT3kppUrca1mAw';
+        const CLIENT_ID = '194882000651-21et342tqcl8keseaat29deqt2b0o4rp.apps.googleusercontent.com';
+        
+        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly';
+
+        let tokenClient;
+        let masterFiles = [];
+
+        // 1. เริ่มต้นระบบ API
+        function gapiLoaded() { gapi.load('client', async () => {
+            await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
+        }); }
+
+        window.onload = () => {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID, scope: SCOPES,
+                callback: async (resp) => {
+                    if (resp.error) return;
+                    document.getElementById('authScreen').style.display = 'none';
+                    await listFiles();
+                    await getStorageUsage();
+                }
+            });
+        };
+
+        function handleAuth() { tokenClient.requestAccessToken({prompt: 'consent'}); }
+
+        // 2. ดึงรายการไฟล์
+        async function listFiles() {
+            const resp = await gapi.client.drive.files.list({
+                pageSize: 50,
+                fields: 'files(id, name, mimeType, thumbnailLink, webContentLink, size)'
+            });
+            masterFiles = resp.result.files;
+            render(masterFiles);
+        }
+
+        function render(files) {
+            const grid = document.getElementById('fileGrid');
+            grid.innerHTML = files.map(f => `
+                <div class="card">
+                    <div class="actions">
+                        <button class="action-btn" onclick="copyShareLink('${f.id}')" title="แชร์"><i class="fa fa-share-nodes"></i></button>
+                        <button class="action-btn" onclick="window.open('${f.webContentLink || '#' }', '_blank')" title="โหลด"><i class="fa fa-download"></i></button>
+                        <button class="action-btn" style="color:red" onclick="deleteFile('${f.id}')"><i class="fa fa-trash"></i></button>
+                    </div>
+                    <div class="card-preview">
+                        ${f.thumbnailLink ? `<img src="${f.thumbnailLink}">` : `<i class="${getIcon(f.mimeType)}"></i>`}
+                    </div>
+                    <div class="card-footer">
+                        <i class="${getIcon(f.mimeType)}" style="color:#4285F4"></i>
+                        <span title="${f.name}">${f.name.length > 18 ? f.name.substring(0,15)+'...' : f.name}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 3. ระบบอัปโหลด
+        async function uploadFile() {
+            const file = document.getElementById('fileIn').files[0];
+            if (!file) return;
+            showToast('กำลังอัปโหลดไปยัง Google Drive...');
+
+            const metadata = { name: file.name, mimeType: file.mimeType };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', file);
+
+            await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: 'POST',
+                headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+                body: form
+            });
+
+            showToast('อัปโหลดสำเร็จ!');
+            listFiles();
+            getStorageUsage();
+        }
+
+        // 4. ลบไฟล์
+        async function deleteFile(id) {
+            if(!confirm('ลบไฟล์นี้จาก Google Drive?')) return;
+            await gapi.client.drive.files.delete({ fileId: id });
+            showToast('ลบเรียบร้อย');
+            listFiles();
+        }
+
+        // 5. คำนวณพื้นที่ใช้ไป
+        async function getStorageUsage() {
+            const resp = await gapi.client.drive.about.get({ fields: 'storageQuota' });
+            const used = resp.result.storageQuota.usage;
+            document.getElementById('usageLabel').innerText = (used / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        // Helpers
+        function copyShareLink(id) {
+            const link = `https://drive.google.com/file/d/${id}/view?usp=sharing`;
+            navigator.clipboard.writeText(link);
+            showToast('คัดลอกลิงก์แชร์แล้ว!');
+        }
+        function doSearch() {
+            const q = document.getElementById('searchIn').value.toLowerCase();
+            render(masterFiles.filter(f => f.name.toLowerCase().includes(q)));
+        }
+        function getIcon(mime) {
+            if (mime.includes('image')) return 'fa fa-image';
+            if (mime.includes('pdf')) return 'fa fa-file-pdf';
+            if (mime.includes('word')) return 'fa fa-file-word';
+            return 'fa fa-file';
+        }
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+        function handleSignout() {
+            const token = gapi.client.getToken();
+            if (token) google.accounts.oauth2.revoke(token.access_token);
+            location.reload();
+        }
+    </script>
+</body>
+</html>
