@@ -3,132 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drive Pro | Enterprise Stable</title>
+    <title>Drive Pro | Ultimate Edition 2026</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1a73e8; --bg: #ffffff; --side: #f1f3f4;
+            --primary: #1a73e8; --bg: #ffffff; --side: #f8f9fa;
             --text: #3c4043; --text-sub: #5f6368; --border: #dadce0;
         }
         [data-theme="dark"] {
-            --bg: #1e1e1e; --side: #2d2d2d; --text: #e8eaed; --text-sub: #9aa0a6; --border: #3c4043;
+            --bg: #121212; --side: #1e1e1e; --text: #e8eaed; --text-sub: #bdc1c6; --border: #3c4043;
         }
 
-        body { margin: 0; font-family: 'Inter', sans-serif; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Sidebar & Buttons */
-        .sidebar { width: 260px; background: var(--side); border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; flex-shrink: 0; transition: width 0.3s; }
-        .nav-item { 
-            padding: 12px 16px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 14px; 
-            font-size: 14px; border: none; background: none; color: var(--text-sub); width: 100%; transition: 0.2s; margin-bottom: 4px;
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-btn { 
+            padding: 12px 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; 
+            gap: 12px; font-size: 14px; border: none; background: none; color: var(--text-sub); width: 100%; transition: 0.2s; margin-bottom: 5px;
         }
-        .nav-item:hover { background: rgba(0,0,0,0.05); color: var(--text); }
-        .nav-item.active { background: #e8f0fe; color: var(--primary); font-weight: 600; }
-        
-        .btn-plus { 
-            background: var(--bg); border: 1px solid var(--border); padding: 12px 20px; border-radius: 25px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; margin-bottom: 20px;
-        }
-        .btn-plus:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); background: #f8f9fa; }
+        .nav-btn:hover { background: rgba(0,0,0,0.05); color: var(--text); }
+        .nav-btn.active { background: #e8f0fe; color: var(--primary); font-weight: 600; }
 
-        /* Workspace */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .header { height: 64px; padding: 0 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        /* Main Workspace */
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .header { height: 64px; padding: 0 25px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
         
-        .search-box { flex: 1; max-width: 700px; position: relative; }
-        .search-box input { width: 100%; padding: 12px 20px 12px 45px; border-radius: 8px; border: none; background: var(--side); outline: none; transition: 0.2s; font-size: 15px; }
-        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
-        .search-box input:focus { background: var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        .search-container { flex: 1; max-width: 600px; position: relative; }
+        .search-container input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--side); outline: none; transition: 0.3s; }
+        .search-container input:focus { border-color: var(--primary); background: var(--bg); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
 
-        /* Grid System */
-        .grid { flex: 1; padding: 25px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; align-content: start; }
+        .breadcrumb { padding: 10px 25px; font-size: 14px; border-bottom: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; gap: 5px; }
+        .breadcrumb span { cursor: pointer; color: var(--primary); }
+        .breadcrumb span:last-child { color: var(--text-sub); cursor: default; }
+
+        /* File Grid */
+        .grid { flex: 1; padding: 25px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
-        .card { 
+        .file-card { 
             background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
-            overflow: hidden; position: relative; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            position: relative; transition: 0.2s; cursor: pointer; overflow: hidden;
         }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); border-color: var(--primary); }
-        
-        /* Action Overlay */
+        .file-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-color: var(--primary); }
+
         .card-actions {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center;
-            gap: 12px; opacity: 0; transition: 0.2s; z-index: 10;
+            position: absolute; inset: 0; background: rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0; transition: 0.2s; z-index: 10;
         }
-        [data-theme="dark"] .card-actions { background: rgba(30,30,30,0.92); }
-        .card:hover .card-actions { opacity: 1; }
+        [data-theme="dark"] .card-actions { background: rgba(18,18,18,0.9); }
+        .file-card:hover .card-actions { opacity: 1; }
 
-        .circle-btn { width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-blue { background: var(--primary); }
-        .btn-green { background: #34a853; }
-        .btn-red { background: #ea4335; }
-        .circle-btn:hover { transform: scale(1.15); filter: brightness(1.1); }
+        .action-btn { width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-view { background: var(--primary); }
+        .btn-share { background: #34a853; }
+        .btn-del { background: #ea4335; }
+        .action-btn:hover { transform: scale(1.2); }
 
-        .card-preview { height: 130px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
-        .card-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .card-preview i { font-size: 45px; color: #cfd8dc; }
-        .card-info { padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border); background: var(--bg); font-size: 13px; }
-        .card-info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview { height: 140px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+        .preview i { font-size: 50px; color: #cfd8dc; }
+        .preview img { width: 100%; height: 100%; object-fit: cover; }
+        .info { padding: 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; border-top: 1px solid var(--border); }
+        .info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-        /* Status Elements */
-        .loading-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 8px; font-size: 14px; display: none; z-index: 10000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        #drop-zone { position: fixed; inset: 0; background: rgba(26,115,232,0.1); border: 4px dashed var(--primary); z-index: 9500; display: none; align-items: center; justify-content: center; pointer-events: none; }
-        
-        .breadcrumb { padding: 0 25px; height: 40px; display: flex; align-items: center; font-size: 14px; color: var(--text-sub); border-bottom: 1px solid var(--border); }
-        .breadcrumb b { cursor: pointer; color: var(--text); padding: 4px 8px; border-radius: 4px; }
-        .breadcrumb b:hover { background: var(--side); }
+        /* Overlays */
+        .loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 24px; border-radius: 8px; z-index: 10000; display: none; }
+        #drop-overlay { position: fixed; inset: 0; background: rgba(26,115,232,0.1); border: 3px dashed var(--primary); z-index: 9500; display: none; align-items: center; justify-content: center; pointer-events: none; }
     </style>
 </head>
 <body ondragover="handleDrag(event, true)" ondragleave="handleDrag(event, false)" ondrop="handleDrop(event)">
 
-    <div id="drop-zone"><h2><i class="fa fa-cloud-upload-alt"></i> วางเพื่ออัปโหลดลงในไดรฟ์</h2></div>
+    <div id="drop-overlay"><h2><i class="fa fa-cloud-upload-alt"></i> วางเพื่ออัปโหลดทันที</h2></div>
 
-    <div id="loader" class="loading-overlay">
+    <div id="loader" class="loading-screen">
         <div id="auth-ui" style="display:none; text-align:center;">
             <i class="fab fa-google-drive fa-5x" style="color:var(--primary); margin-bottom:20px;"></i>
-            <h2 style="margin:0;">Drive Pro | Smart Manager</h2>
-            <p style="color:var(--text-sub); margin-bottom:30px;">จัดการไฟล์ของคุณอย่างมืออาชีพ รวดเร็ว และปลอดภัย</p>
-            <button class="nav-item active" onclick="handleAuth()" style="width:auto; padding: 12px 40px; margin:0 auto; justify-content:center;">เริ่มต้นใช้งาน</button>
+            <h2>Drive Pro</h2>
+            <p>กรุณาลงชื่อเข้าใช้เพื่อจัดการไฟล์ของคุณ</p>
+            <button class="nav-btn active" onclick="handleAuth()" style="width:auto; padding: 12px 40px; margin: 0 auto; justify-content: center;">ลงชื่อเข้าใช้ด้วย Google</button>
         </div>
         <div id="spinner"><i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary)"></i></div>
     </div>
 
     <aside class="sidebar">
-        <div style="font-size: 20px; font-weight: bold; color: var(--primary); padding: 10px 10px 30px;"><i class="fab fa-google-drive"></i> Drive Pro</div>
+        <div class="logo"><i class="fab fa-google-drive"></i> Drive Pro</div>
         
-        <button class="btn-plus" onclick="createFolder()"><i class="fa fa-folder-plus"></i> โฟลเดอร์ใหม่</button>
-        
-        <button class="nav-item active" id="nav-home" onclick="goHome()"><i class="fa fa-hdd"></i> ไฟล์ทั้งหมด</button>
-        <button class="nav-item" onclick="filterType('image')"><i class="fa fa-image"></i> รูปภาพ</button>
-        <button class="nav-item" onclick="filterType('pdf')"><i class="fa fa-file-pdf"></i> เอกสาร PDF</button>
-        <button class="nav-item" onclick="filterType('video')"><i class="fa fa-play-circle"></i> วิดีโอ</button>
+        <button class="nav-btn active" style="background:var(--primary); color:white; margin-bottom:20px;" onclick="createFolder()">
+            <i class="fa fa-plus-circle"></i> โฟลเดอร์ใหม่
+        </button>
+
+        <button class="nav-btn active" onclick="goHome()" id="nav-root"><i class="fa fa-hdd"></i> ไฟล์ทั้งหมด</button>
+        <button class="nav-btn" onclick="filterType('image')"><i class="fa fa-image"></i> รูปภาพ</button>
+        <button class="nav-btn" onclick="filterType('pdf')"><i class="fa fa-file-pdf"></i> ไฟล์ PDF</button>
         
         <div style="margin-top: auto;">
-            <button class="nav-item" onclick="toggleTheme()"><i class="fa fa-adjust"></i> เปลี่ยนธีมสี</button>
-            <button class="nav-item" onclick="handleLogout()" style="color: #ea4335;"><i class="fa fa-sign-out-alt"></i> ออกจากระบบ</button>
+            <button class="nav-btn" onclick="toggleTheme()"><i class="fa fa-adjust"></i> สลับธีมสี</button>
+            <button class="nav-btn" onclick="handleLogout()" style="color:#ea4335"><i class="fa fa-sign-out-alt"></i> ออกจากระบบ</button>
         </div>
     </aside>
 
     <main class="main">
         <header class="header">
-            <div class="search-box">
+            <div class="search-container">
                 <i class="fa fa-search"></i>
-                <input type="text" id="qInput" placeholder="ค้นหาชื่อไฟล์ของคุณ..." oninput="debounceSearch()">
+                <input type="text" id="searchInput" placeholder="ค้นหาไฟล์..." oninput="debounceSearch()">
             </div>
-            <button class="nav-item active" style="width:auto; background:var(--primary); color:white; padding: 10px 25px;" onclick="document.getElementById('f-in').click()">
+            <button class="nav-btn active" style="width:auto; background:var(--primary); color:white;" onclick="document.getElementById('fileInput').click()">
                 <i class="fa fa-upload"></i> อัปโหลด
             </button>
         </header>
 
-        <div class="breadcrumb" id="bread"><b>My Drive</b></div>
+        <div class="breadcrumb" id="breadcrumb"></div>
 
-        <div class="grid" id="grid">
-            </div>
+        <div class="grid" id="fileGrid"></div>
     </main>
 
-    <input type="file" id="f-in" hidden multiple onchange="handleFileInput(event)">
+    <input type="file" id="fileInput" hidden multiple onchange="handleFileInput(event)">
     <div id="toast" class="toast"></div>
 
     <script>
@@ -136,151 +131,146 @@
         const CLIENT_ID = '914130530338-l7anrm3o0gp1rjekep18sm2pehhlsofp.apps.googleusercontent.com';
         const SCOPES = 'https://www.googleapis.com/auth/drive';
 
-        let tokenClient, currentFolder = 'root', path = [{id:'root', name:'My Drive'}];
+        let tokenClient, currentFolderId = 'root', path = [{id:'root', name:'My Drive'}];
 
+        // --- 1. Initial & Auth ---
         function initGapi() {
             gapi.load('client', async () => {
                 await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] });
-                authFlow();
+                checkAuth();
             });
-        }
 
-        function authFlow() {
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID, scope: SCOPES,
                 callback: (resp) => {
-                    if (resp.error) return;
                     localStorage.setItem('drive_token', resp.access_token);
-                    document.getElementById('loader').style.display = 'none';
-                    fetchFiles();
+                    location.reload();
                 }
             });
+        }
 
-            const savedToken = localStorage.getItem('drive_token');
-            if (savedToken) {
-                gapi.client.setToken({ access_token: savedToken });
+        function checkAuth() {
+            const token = localStorage.getItem('drive_token');
+            if (token) {
+                gapi.client.setToken({ access_token: token });
                 gapi.client.drive.about.get({fields:'user'}).then(() => {
                     document.getElementById('loader').style.display = 'none';
                     fetchFiles();
-                }).catch(() => showLogin());
-            } else { showLogin(); }
+                }).catch(() => showAuthUI());
+            } else { showAuthUI(); }
         }
 
-        function showLogin() {
-            document.getElementById('spinner').style.display = 'none';
-            document.getElementById('auth-ui').style.display = 'block';
-        }
-
+        function showAuthUI() { document.getElementById('spinner').style.display='none'; document.getElementById('auth-ui').style.display='block'; }
         function handleAuth() { tokenClient.requestAccessToken({prompt: 'consent'}); }
         function handleLogout() { localStorage.clear(); location.reload(); }
 
-        // --- Core Data Handling ---
-        async function fetchFiles(fid = currentFolder, search = '') {
-            currentFolder = fid;
-            let query = `'${fid}' in parents and 'me' in owners and trashed = false`;
-            if(search) query = `'me' in owners and name contains '${search}' and trashed = false`;
+        // --- 2. Data Fetching ---
+        async function fetchFiles(folderId = currentFolderId, search = '') {
+            currentFolderId = folderId;
+            let q = `'${folderId}' in parents and 'me' in owners and trashed = false`;
+            if(search) q = `'me' in owners and name contains '${search}' and trashed = false`;
 
             try {
                 const res = await gapi.client.drive.files.list({
-                    pageSize: 100, q: query,
+                    pageSize: 50, q: q,
                     fields: 'files(id, name, mimeType, thumbnailLink, iconLink)',
                     orderBy: 'folder, name'
                 });
                 render(res.result.files || []);
-            } catch (e) {
-                if(e.status === 401) handleLogout();
-                showToast("ไม่สามารถโหลดไฟล์ได้");
-            }
+            } catch (e) { showToast("ไม่สามารถโหลดไฟล์ได้"); }
         }
 
         function render(files) {
-            const grid = document.getElementById('grid');
+            const grid = document.getElementById('fileGrid');
             grid.innerHTML = files.map(f => {
-                const isF = f.mimeType === 'application/vnd.google-apps.folder';
+                const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
                 return `
-                <div class="card" onclick="${isF ? `enter('${f.id}','${f.name}')` : ''}">
+                <div class="file-card" onclick="${isFolder ? `enterFolder('${f.id}','${f.name}')` : ''}">
                     <div class="card-actions">
-                        <button class="circle-btn btn-blue" onclick="event.stopPropagation(); ${isF ? `enter('${f.id}','${f.name}')` : `view('${f.id}')`}"><i class="fa ${isF?'fa-folder-open':'fa-eye'}"></i></button>
-                        <button class="circle-btn btn-green" title="แชร์" onclick="event.stopPropagation(); share('${f.id}')"><i class="fa fa-share-alt"></i></button>
-                        <button class="circle-btn btn-red" title="ลบ" onclick="event.stopPropagation(); del('${f.id}')"><i class="fa fa-trash-alt"></i></button>
+                        <button class="action-btn btn-view" title="เปิด" onclick="event.stopPropagation(); ${isFolder ? `enterFolder('${f.id}','${f.name}')` : `viewFile('${f.id}')`}"><i class="fa ${isFolder?'fa-folder-open':'fa-eye'}"></i></button>
+                        <button class="action-btn btn-share" title="คัดลอกลิงก์" onclick="event.stopPropagation(); shareFile('${f.id}')"><i class="fa fa-share-alt"></i></button>
+                        <button class="action-btn btn-del" title="ลบ" onclick="event.stopPropagation(); deleteFile('${f.id}')"><i class="fa fa-trash-alt"></i></button>
                     </div>
-                    <div class="card-preview">
-                        ${f.thumbnailLink && !isF ? `<img src="${f.thumbnailLink.replace('=s220','=s500')}">` : `<i class="${isF?'fa fa-folder':'fa fa-file-alt'}" style="${isF?'color:#fbc02d':''}"></i>`}
+                    <div class="preview">
+                        ${f.thumbnailLink && !isFolder ? `<img src="${f.thumbnailLink.replace('=s220','=s500')}">` : `<i class="${isFolder?'fa fa-folder':'fa fa-file-alt'}" style="${isFolder?'color:#fbc02d':''}"></i>`}
                     </div>
-                    <div class="card-info"><img src="${f.iconLink}" width="16"><span>${f.name}</span></div>
+                    <div class="info"><img src="${f.iconLink}" width="16"><span>${f.name}</span></div>
                 </div>`;
             }).join('');
-            if(!files.length) grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">ไม่พบไฟล์ในหน้านี้</p>';
-            updateBread();
+            updateBreadcrumb();
         }
 
-        // --- Features: Search, Folder, Drag&Drop ---
-        let sTimer;
-        function debounceSearch() {
-            clearTimeout(sTimer);
-            sTimer = setTimeout(() => fetchFiles(currentFolder, document.getElementById('qInput').value), 500);
-        }
-
+        // --- 3. Actions ---
         async function createFolder() {
             const name = prompt("ระบุชื่อโฟลเดอร์ใหม่:");
             if (!name) return;
-            await gapi.client.drive.files.create({ resource: { name, mimeType: 'application/vnd.google-apps.folder', parents: [currentFolder] } });
+            await gapi.client.drive.files.create({ resource: { name, mimeType: 'application/vnd.google-apps.folder', parents: [currentFolderId] } });
             fetchFiles();
-            showToast("สร้างโฟลเดอร์สำเร็จ");
+            showToast("สร้างโฟลเดอร์เรียบร้อย");
+        }
+
+        async function deleteFile(id) {
+            if(!confirm("ต้องการย้ายไปที่ถังขยะใช่หรือไม่?")) return;
+            await gapi.client.drive.files.update({ fileId: id, resource: { trashed: true } });
+            fetchFiles();
+            showToast("ย้ายไปที่ถังขยะแล้ว");
+        }
+
+        function shareFile(id) {
+            const link = `https://drive.google.com/file/d/${id}/view?usp=sharing`;
+            navigator.clipboard.writeText(link).then(() => showToast("คัดลอกลิงก์แชร์แล้ว!"));
+        }
+
+        function viewFile(id) { window.open(`https://drive.google.com/file/d/${id}/view`, '_blank'); }
+
+        // --- 4. Navigation & Search ---
+        function enterFolder(id, name) { path.push({id, name}); fetchFiles(id); }
+        function goHome() { path = [{id:'root', name:'My Drive'}]; fetchFiles('root'); }
+        function jumpTo(i) { path = path.slice(0, i+1); fetchFiles(path[i].id); }
+        function updateBreadcrumb() {
+            document.getElementById('breadcrumb').innerHTML = path.map((p, i) => 
+                `<span onclick="jumpTo(${i})">${p.name}</span>`).join(' <i class="fa fa-chevron-right" style="font-size:10px;"></i> ');
+        }
+
+        let sTimer;
+        function debounceSearch() {
+            clearTimeout(sTimer);
+            sTimer = setTimeout(() => fetchFiles(currentFolderId, document.getElementById('searchInput').value), 500);
         }
 
         async function filterType(type) {
             let q = `'me' in owners and trashed = false`;
-            if(type === 'image') q += " and mimeType contains 'image/'";
-            if(type === 'pdf') q += " and mimeType = 'application/pdf'";
-            if(type === 'video') q += " and mimeType contains 'video/'";
+            if(type==='image') q += " and mimeType contains 'image/'";
+            if(type==='pdf') q += " and mimeType = 'application/pdf'";
             const res = await gapi.client.drive.files.list({ q, fields: 'files(id, name, mimeType, thumbnailLink, iconLink)' });
             render(res.result.files || []);
         }
 
-        // --- File Operations ---
-        function view(id) { window.open(`https://drive.google.com/file/d/${id}/view`, '_blank'); }
-        function share(id) { 
-            const link = `https://drive.google.com/file/d/${id}/view?usp=sharing`;
-            navigator.clipboard.writeText(link).then(() => showToast("คัดลอกลิงก์แชร์แล้ว!"));
-        }
-        async function del(id) {
-            if(!confirm("ต้องการย้ายไปที่ถังขยะใช่หรือไม่?")) return;
-            await gapi.client.drive.files.update({ fileId: id, resource: { trashed: true } });
-            fetchFiles();
-            showToast("ลบไฟล์แล้ว");
-        }
-
-        // --- Navigation ---
-        function enter(id, name) { path.push({id, name}); fetchFiles(id); }
-        function goHome() { path = [{id:'root', name:'My Drive'}]; fetchFiles('root'); }
-        function jump(i) { path = path.slice(0, i+1); fetchFiles(path[i].id); }
-        function updateBread() { document.getElementById('bread').innerHTML = path.map((p, i) => `<b onclick="jump(${i})">${p.name}</b>`).join(' <i class="fa fa-chevron-right" style="font-size:10px; color:#ccc;"></i> '); }
-
-        // --- Upload Management ---
-        function handleDrag(e, a) { e.preventDefault(); document.getElementById('drop-zone').style.display = a?'flex':'none'; }
-        async function handleDrop(e) { e.preventDefault(); handleDrag(e,false); uploadBatch(e.dataTransfer.files); }
-        function handleFileInput(e) { uploadBatch(e.target.files); }
-
-        async function uploadBatch(files) {
-            for(let f of files) {
-                showToast(`กำลังอัปโหลด ${f.name}...`);
-                const meta = { name: f.name, parents: [currentFolder] };
+        // --- 5. Upload Fix (Multipart) ---
+        async function uploadFiles(files) {
+            const token = gapi.client.getToken().access_token;
+            for (let file of files) {
+                showToast(`กำลังอัปโหลด: ${file.name}...`);
+                const metadata = { name: file.name, parents: [currentFolderId] };
                 const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
-                form.append('file', f);
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', file);
+
                 await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + gapi.client.getToken().access_token },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: form
                 });
             }
-            showToast("อัปโหลดสำเร็จทั้งหมด");
+            showToast("อัปโหลดสำเร็จ!");
             fetchFiles();
         }
 
-        // --- Utilities ---
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+        // --- UI Utils ---
+        function handleDrag(e, a) { e.preventDefault(); document.getElementById('drop-overlay').style.display = a?'flex':'none'; }
+        function handleDrop(e) { e.preventDefault(); handleDrag(e,false); uploadFiles(e.dataTransfer.files); }
+        function handleFileInput(e) { uploadFiles(e.target.files); }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
         function toggleTheme() { document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark'; }
 
         window.onload = initGapi;
