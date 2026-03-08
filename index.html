@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unlimited Drive - Final Fix</title>
+    <title>My Full Google Drive</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer onload="initGapi()"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --g-blue: #1a73e8; --border: #dadce0; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; background: #fff; }
         
-        /* Sidebar & Progress */
-        .sidebar { width: 260px; padding: 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; background: #fff; }
-        .btn-new { width: fit-content; padding: 12px 24px; border-radius: 30px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); background: white; cursor: pointer; margin: 10px 0 20px 5px; display: flex; align-items: center; gap: 12px; }
+        /* Sidebar */
+        .sidebar { width: 260px; padding: 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        .btn-new { width: fit-content; padding: 12px 24px; border-radius: 30px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.3); background: white; cursor: pointer; margin: 10px 0 20px 5px; display: flex; align-items: center; gap: 12px; font-weight: 500; }
         .nav-item { padding: 12px 20px; border-radius: 0 25px 25px 0; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 15px; color: #3c4043; }
         .nav-item.active { background: #e8f0fe; color: var(--g-blue); font-weight: 500; }
         .storage-box { margin-top: auto; padding: 20px; border-top: 1px solid #eee; }
@@ -19,21 +21,22 @@
         .progress-fill { width: 100%; background: var(--g-blue); height: 100%; border-radius: 2px; }
 
         /* Main Content */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff; }
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .header { height: 64px; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); }
         .search-bar { flex: 1; max-width: 720px; background: #f1f3f4; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 12px; }
         .search-bar input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; }
         .content { padding: 24px; overflow-y: auto; flex: 1; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
 
-        /* Card */
+        /* File Card */
         .card { border: 1px solid var(--border); border-radius: 8px; position: relative; overflow: hidden; transition: 0.2s; }
         .card:hover { box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
         .card-preview { height: 120px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
         .card-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .card-footer { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; border-top: 1px solid var(--border); }
+        .card-footer { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; border-top: 1px solid var(--border); overflow: hidden; }
         .actions { display: none; position: absolute; top: 5px; right: 5px; gap: 5px; background: #fff; padding: 4px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .card:hover .actions { display: flex; }
+        .action-btn { border: none; background: none; cursor: pointer; padding: 5px; color: #5f6368; }
 
         /* Overlays */
         .overlay { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -42,32 +45,30 @@
 </head>
 <body>
 
-    <div id="loaderScreen" class="overlay">
-        <div class="fa-3x"><i class="fas fa-circle-notch fa-spin" style="color:#4285F4"></i></div>
-        <p>กำลังโหลดระบบ Google Drive...</p>
+    <div id="loader" class="overlay">
+        <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#4285F4"></i>
+        <p>กำลังเตรียมความพร้อม...</p>
     </div>
 
     <div id="authScreen" class="overlay" style="display:none;">
         <i class="fab fa-google-drive" style="font-size: 80px; color: #4285F4; margin-bottom: 20px;"></i>
-        <h2>Unlimited Cloud Drive</h2>
+        <h2>เข้าถึงไฟล์ทั้งหมดใน Drive ของคุณ</h2>
         <button class="btn-new" onclick="handleAuth()">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18">
-            Login with Google
+            เชื่อมต่อ Google Drive
         </button>
     </div>
 
     <div class="sidebar">
-        <div style="padding:15px; font-size:22px; color:#5f6368;"><i class="fab fa-google-drive" style="color:#4285F4"></i> Drive</div>
-        <button class="btn-new" onclick="document.getElementById('fileIn').click()">
-            <i class="fa fa-plus fa-lg"></i> New
-        </button>
-        <div class="nav-item active"><i class="fa fa-folder"></i> My Unlimited Drive</div>
-        <div class="nav-item" onclick="location.reload()"><i class="fa fa-sync"></i> Refresh</div>
+        <div style="padding:15px; font-size:22px; color:#5f6368; font-weight:500;"><i class="fab fa-google-drive" style="color:#4285F4"></i> My Drive</div>
+        <button class="btn-new" onclick="document.getElementById('fileIn').click()"><i class="fa fa-plus fa-lg"></i> New</button>
+        <div class="nav-item active"><i class="fa fa-folder"></i> ไฟล์ทั้งหมด</div>
+        <div class="nav-item" onclick="location.reload()"><i class="fa fa-sync"></i> รีเฟรช</div>
         
         <div class="storage-box">
-            <div style="font-size: 12px; color: #5f6368;">ใช้ไปแล้ว <span id="usageLabel">0 MB</span></div>
+            <div style="font-size: 12px; color: #5f6368;">ใช้ไปแล้ว <span id="usageLabel">0 GB</span></div>
             <div class="progress-bg"><div class="progress-fill"></div></div>
-            <div style="font-size: 10px; color: #999; margin-top: 5px;">บัญชีพื้นที่ไม่จำกัด</div>
+            <div style="font-size: 10px; color: #999; margin-top: 5px;">พื้นที่ไม่จำกัด</div>
         </div>
     </div>
 
@@ -76,7 +77,6 @@
             <div class="search-bar"><i class="fa fa-search"></i><input type="text" id="searchIn" placeholder="ค้นหาไฟล์..." oninput="doSearch()"></div>
         </div>
         <div class="content">
-            <h3 style="font-weight: 400; margin-bottom: 20px;">ไฟล์ทั้งหมด</h3>
             <div id="fileGrid" class="grid"></div>
         </div>
     </div>
@@ -85,20 +85,23 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        // --- ใส่ค่าของคุณที่นี่ ---
         const API_KEY = 'AIzaSyDNc8q0m7n-ccjrof2niaT3kppUrca1mAw';
         const CLIENT_ID = '194882000651-21et342tqcl8keseaat29deqt2b0o4rp.apps.googleusercontent.com';
+        
+        // Scope ตัวนี้จะทำให้เห็นไฟล์ "ทั้งหมด"
+        const SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly';
 
         let tokenClient;
         let masterFiles = [];
 
-        // แก้บั๊ก gapiLoaded is not defined
         function initGapi() {
             gapi.load('client', async () => {
                 await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
-                document.getElementById('loaderScreen').style.display = 'none';
+                document.getElementById('loader').style.display = 'none';
                 document.getElementById('authScreen').style.display = 'flex';
+                initGsi();
             });
         }
 
@@ -114,22 +117,23 @@
         }
 
         async function refreshData() {
-            showToast('กำลังซิงค์ข้อมูล...');
-            await listFiles();
+            showToast('กำลังโหลดไฟล์ทั้งหมด...');
+            await listAllFiles();
             await getUsage();
         }
 
         function handleAuth() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
-        async function listFiles() {
-            try {
-                const resp = await gapi.client.drive.files.list({
-                    pageSize: 50,
-                    fields: 'files(id, name, mimeType, thumbnailLink, webContentLink)'
-                });
-                masterFiles = resp.result.files;
-                render(masterFiles);
-            } catch (e) { console.error(e); }
+        // ฟังก์ชันดึงไฟล์ทั้งหมด (trashed = false คือไม่เอาไฟล์ในถังขยะ)
+        async function listAllFiles() {
+            const resp = await gapi.client.drive.files.list({
+                pageSize: 100,
+                fields: 'files(id, name, mimeType, thumbnailLink, webViewLink)',
+                q: "trashed = false",
+                orderBy: "modifiedTime desc"
+            });
+            masterFiles = resp.result.files;
+            render(masterFiles);
         }
 
         function render(files) {
@@ -137,16 +141,15 @@
             grid.innerHTML = files.map(f => `
                 <div class="card">
                     <div class="actions">
-                        <button onclick="copyLink('${f.id}')" title="แชร์"><i class="fa fa-share-nodes"></i></button>
-                        <button onclick="window.open('${f.webContentLink || '#'}', '_blank')"><i class="fa fa-download"></i></button>
-                        <button style="color:red" onclick="deleteFile('${f.id}')"><i class="fa fa-trash"></i></button>
+                        <button class="action-btn" onclick="window.open('${f.webViewLink}', '_blank')"><i class="fa fa-eye"></i></button>
+                        <button class="action-btn" style="color:red" onclick="deleteFile('${f.id}')"><i class="fa fa-trash"></i></button>
                     </div>
                     <div class="card-preview">
-                        ${f.thumbnailLink ? `<img src="${f.thumbnailLink}">` : `<i class="fa fa-file fa-3x" style="color:#bdc1c6"></i>`}
+                        ${f.thumbnailLink ? `<img src="${f.thumbnailLink}">` : `<i class="${getIcon(f.mimeType)} fa-3x" style="color:#bdc1c6"></i>`}
                     </div>
                     <div class="card-footer">
-                        <i class="fa fa-file" style="color:#4285F4"></i>
-                        <span>${f.name.length > 15 ? f.name.substring(0,12)+'...' : f.name}</span>
+                        <i class="${getIcon(f.mimeType)}" style="color:#4285F4"></i>
+                        <span title="${f.name}">${f.name.length > 15 ? f.name.substring(0,12)+'...' : f.name}</span>
                     </div>
                 </div>
             `).join('');
@@ -156,33 +159,37 @@
             const file = document.getElementById('fileIn').files[0];
             if (!file) return;
             showToast('กำลังอัปโหลด...');
-            
             const metadata = { name: file.name, mimeType: file.mimeType };
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', file);
 
-            try {
-                await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-                    body: form
-                });
-                showToast('สำเร็จ!');
-                refreshData();
-            } catch (e) { showToast('ล้มเหลว'); }
+            await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + gapi.client.getToken().access_token },
+                body: form
+            });
+            showToast('สำเร็จ!');
+            refreshData();
         }
 
         async function deleteFile(id) {
-            if(!confirm('ลบไฟล์นี้?')) return;
-            await gapi.client.drive.files.delete({ fileId: id });
+            if(!confirm('ย้ายไฟล์นี้ไปที่ถังขยะ?')) return;
+            await gapi.client.drive.files.update({ fileId: id, resource: { trashed: true } });
             refreshData();
         }
 
         async function getUsage() {
             const resp = await gapi.client.drive.about.get({ fields: 'storageQuota' });
             const used = resp.result.storageQuota.usage;
-            document.getElementById('usageLabel').innerText = (used / (1024 * 1024)).toFixed(2) + ' MB';
+            document.getElementById('usageLabel').innerText = (used / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        function getIcon(mime) {
+            if (mime.includes('image')) return 'fa fa-image';
+            if (mime.includes('pdf')) return 'fa fa-file-pdf';
+            if (mime.includes('folder')) return 'fa fa-folder';
+            return 'fa fa-file';
         }
 
         function showToast(m) {
@@ -191,18 +198,10 @@
             setTimeout(() => t.style.display = 'none', 3000);
         }
 
-        function copyLink(id) {
-            navigator.clipboard.writeText(`https://drive.google.com/file/d/${id}/view`);
-            showToast('คัดลอกลิงก์แล้ว');
-        }
-
         function doSearch() {
             const q = document.getElementById('searchIn').value.toLowerCase();
             render(masterFiles.filter(f => f.name.toLowerCase().includes(q)));
         }
     </script>
-
-    <script async defer src="https://apis.google.com/js/api.js" onload="initGapi()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="initGsi()"></script>
 </body>
 </html>
