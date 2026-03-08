@@ -3,122 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drive Pro | Ultimate Complete Edition</title>
+    <title>Drive Pro | Linux Smooth Edition</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1a73e8; --bg: #ffffff; --side: #f1f3f4; --border: #dadce0;
-            --text-main: #202124; --text-sub: #5f6368; --danger: #d93025;
+            --primary: #3584e4; /* GNOME Blue */
+            --bg: #f6f5f4;
+            --sidebar-bg: #ebebeb;
+            --card-bg: #ffffff;
+            --text-main: #2e3436;
+            --accent: #1c71d8;
+            --radius: 12px;
+            --shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--bg); color: var(--text-main); overflow: hidden; }
+        * { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; }
 
-        /* Sidebar & Navigation */
-        .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .nav-item { padding: 12px 16px; border-radius: 24px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-size: 14px; border: none; background: none; width: 100%; color: var(--text-sub); margin-bottom: 4px; transition: 0.2s; }
-        .nav-item.active { background: #e8f0fe; color: var(--primary); font-weight: 600; }
-        .nav-item:hover:not(.active) { background: rgba(0,0,0,0.05); }
+        body { 
+            margin: 0; font-family: 'Inter', -apple-system, sans-serif; 
+            display: flex; height: 100vh; background: var(--bg); color: var(--text-main); 
+            overflow: hidden; 
+        }
 
-        /* Storage Tracker */
-        .storage-box { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
-        .p-bar-bg { height: 4px; background: #ddd; border-radius: 2px; margin: 8px 0; overflow: hidden; }
-        .p-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.5s; }
+        /* Sidebar - Linux Sidebar Style */
+        .sidebar { 
+            width: 260px; background: var(--sidebar-bg); padding: 20px; 
+            display: flex; flex-direction: column; gap: 8px; border-right: 1px solid rgba(0,0,0,0.05);
+        }
 
-        /* Main Grid Area */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .path-bar { padding: 15px 24px; border-bottom: 1px solid var(--border); font-size: 14px; background: white; z-index: 10; }
-        .path-bar b { cursor: pointer; color: var(--primary); }
-        .grid { flex: 1; padding: 24px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; align-content: start; }
+        .btn-upload {
+            background: var(--primary); color: white; border: none; padding: 12px;
+            border-radius: var(--radius); font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 6px rgba(53, 132, 228, 0.3); margin-bottom: 20px;
+        }
+        .btn-upload:hover { background: var(--accent); transform: translateY(-1px); box-shadow: 0 6px 12px rgba(53, 132, 228, 0.4); }
+
+        .nav-item { 
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; border: none; 
+            background: transparent; color: var(--text-main); display: flex; align-items: center; gap: 12px;
+            text-align: left; font-size: 14px;
+        }
+        .nav-item:hover { background: rgba(0,0,0,0.05); }
+        .nav-item.active { background: white; box-shadow: var(--shadow); color: var(--primary); font-weight: 600; }
+
+        /* Main Area */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Card UI */
-        .card { background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 4/3.5; }
-        .card:hover { border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .card.selected { background: #e8f0fe; border-color: var(--primary); }
-        .preview-thumb { flex: 1; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-bottom: 1px solid var(--border); overflow: hidden; }
-        .preview-thumb i { font-size: 40px; color: #cfd8dc; }
-        .preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .info { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
-        .info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        /* Header / Toolbar */
+        .header { 
+            padding: 15px 30px; background: white; border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: space-between;
+        }
 
-        /* Context Menu */
-        #context-menu { position: fixed; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; z-index: 10000; min-width: 200px; padding: 6px 0; }
-        .menu-item { padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-main); }
-        .menu-item:hover { background: #f1f3f4; }
-        .menu-item.danger { color: var(--danger); }
+        .breadcrumb { font-size: 14px; color: var(--text-main); display: flex; gap: 5px; align-items: center; }
+        .breadcrumb b { color: var(--primary); cursor: pointer; }
 
-        /* Preview Modal */
-        #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; z-index: 70000; align-items: center; justify-content: center; }
-        .modal-content { width: 85%; height: 85%; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .modal-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
-        .modal-body { flex: 1; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .modal-body iframe, .modal-body img { width: 100%; height: 100%; border: none; object-fit: contain; }
+        /* Smooth Grid */
+        .grid { 
+            flex: 1; padding: 30px; overflow-y: auto; display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+            gap: 25px; align-content: start;
+        }
 
-        /* Upload Widget */
-        #upload-widget { position: fixed; bottom: 20px; right: 20px; width: 320px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); display: none; z-index: 50000; border: 1px solid var(--border); }
-        .widget-header { background: #323232; color: white; padding: 12px 16px; font-size: 14px; display: flex; justify-content: space-between; }
-        .widget-body { padding: 16px; max-height: 250px; overflow-y: auto; }
-        .upload-item { margin-bottom: 12px; font-size: 13px; }
+        .card { 
+            background: var(--card-bg); border-radius: var(--radius); border: 1px solid transparent;
+            box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; 
+            overflow: hidden; position: relative;
+        }
+        .card:hover { border-color: var(--primary); transform: scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .card.selected { outline: 2px solid var(--primary); background: #f0f7ff; }
 
-        .loader { position: fixed; inset: 0; background: white; z-index: 90000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .card .visual { 
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            background: #fafafa; aspect-ratio: 1; font-size: 50px; color: #d0d0d0;
+        }
+        .card .visual img { width: 100%; height: 100%; object-fit: cover; }
+        .card .info { padding: 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
+
+        /* Linux-style Context Menu */
+        #context-menu { 
+            position: fixed; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 5px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1000; min-width: 180px;
+        }
+        .menu-item { 
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; 
+            gap: 10px; font-size: 13px; color: var(--text-main);
+        }
+        .menu-item:hover { background: var(--primary); color: white; }
+
+        /* Smooth Modal (Preview) */
+        #preview-modal { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content { 
+            width: 80%; height: 80%; background: white; border-radius: 16px; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        /* Upload Widget - Modern Toast */
+        #upload-widget { 
+            position: fixed; bottom: 20px; right: 20px; width: 300px; 
+            background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: none; z-index: 1500; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Loader */
+        .loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body onclick="hideMenu()" oncontextmenu="return false;">
 
     <div id="loader" class="loader">
-        <div id="auth-ui" style="display:none; text-align:center;">
-            <i class="fab fa-google-drive fa-4x" style="color:var(--primary); margin-bottom:20px;"></i>
-            <h2>ยินดีต้อนรับสู่ Drive Pro</h2>
-            <button onclick="handleLogin()" style="padding:12px 24px; border-radius:24px; border:1px solid var(--primary); background:white; color:var(--primary); cursor:pointer; font-weight:600;">Login with Google</button>
+        <i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary)"></i>
+        <div id="auth-ui" style="display:none; text-align:center; margin-top: 20px;">
+            <button onclick="handleLogin()" class="btn-upload">Sign in to Drive</button>
         </div>
-        <i class="fas fa-circle-notch fa-spin fa-3x" id="spinner" style="color:var(--primary)"></i>
+    </div>
+
+    <aside class="sidebar">
+        <div style="font-weight: 800; font-size: 20px; padding: 10px; color: var(--primary);">Drive Pro</div>
+        <button class="btn-upload" onclick="document.getElementById('f-upload').click()">
+            <i class="fa fa-plus"></i> อัปโหลดไฟล์
+        </button>
+        <nav style="display: flex; flex-direction: column; gap: 4px;">
+            <button class="nav-item active" id="nav-main" onclick="loadDrive()"><i class="fa fa-home"></i> ไฟล์ทั้งหมด</button>
+            <button class="nav-item" id="nav-trash" onclick="loadTrash()"><i class="fa fa-trash"></i> ถังขยะ</button>
+            <button class="nav-item" onclick="createFolder()"><i class="fa fa-folder-plus"></i> โฟลเดอร์ใหม่</button>
+        </nav>
+
+        <div class="storage-box">
+            <div id="storage-text" style="font-size: 11px; margin-bottom: 5px;">กำลังคำนวณ...</div>
+            <div class="p-bar-bg"><div id="storage-bar" class="p-bar-fill"></div></div>
+            <span onclick="logout()" style="font-size: 12px; color: #888; cursor: pointer; display: block; margin-top: 10px;">ออกจากระบบ</span>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="header">
+            <div class="breadcrumb" id="path"> My Drive </div>
+            <div id="user-info" style="font-size: 12px; color: #666;"></div>
+        </header>
+        <div class="grid" id="grid"></div>
+    </main>
+
+    <div id="context-menu">
+        <div class="menu-item" onclick="openItem()"><i class="fa fa-eye"></i> ดูตัวอย่าง</div>
+        <div class="menu-item" onclick="renameItem()"><i class="fa fa-edit"></i> เปลี่ยนชื่อ</div>
+        <div class="menu-item" onclick="copyItem()"><i class="fa fa-copy"></i> ทำสำเนา</div>
+        <div class="menu-item" id="m-restore" style="display:none;" onclick="restoreItem()"><i class="fa fa-undo"></i> กู้คืน</div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+        <div class="menu-item" onclick="deleteItem()" style="color: #e01b24;"><i class="fa fa-trash"></i> ลบ</div>
     </div>
 
     <div id="preview-modal" onclick="closePreview()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span id="preview-title" style="font-weight:600;">Preview</span>
-                <i class="fa fa-times" style="cursor:pointer; font-size:20px;" onclick="closePreview()"></i>
+            <div style="padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;">
+                <span id="preview-title" style="font-weight: 600;"></span>
+                <i class="fa fa-times" onclick="closePreview()" style="cursor: pointer;"></i>
             </div>
             <div class="modal-body" id="preview-body"></div>
         </div>
     </div>
 
-    <div id="context-menu">
-        <div class="menu-item" onclick="openItem()"><i class="fa fa-folder-open"></i> เปิด / พรีวิว</div>
-        <div id="m-rename" class="menu-item" onclick="renameItem()"><i class="fa fa-edit"></i> เปลี่ยนชื่อ</div>
-        <div id="m-copy" class="menu-item" onclick="copyItem()"><i class="fa fa-copy"></i> ทำสำเนา</div>
-        <div id="m-link" class="menu-item" onclick="shareLink()"><i class="fa fa-link"></i> คัดลอกลิงก์</div>
-        <div id="m-restore" class="menu-item" style="display:none;" onclick="restoreItem()"><i class="fa fa-undo"></i> กู้คืนกลับที่เดิม</div>
-        <div class="menu-item danger" onclick="deleteItem()"><i class="fa fa-trash"></i> ย้ายไปถังขยะ</div>
-    </div>
-
-    <aside class="sidebar">
-        <h2 style="color:var(--primary); padding-left:10px;"><i class="fab fa-google-drive"></i> Drive Pro</h2>
-        <button onclick="document.getElementById('f-upload').click()" style="background:white; border:1px solid var(--border); padding:14px; border-radius:28px; cursor:pointer; display:flex; align-items:center; gap:12px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.1); font-weight:600;">
-            <i class="fa fa-plus" style="color:var(--primary)"></i> อัปโหลดไฟล์
-        </button>
-        <nav>
-            <button class="nav-item active" id="nav-main" onclick="loadDrive()"><i class="fa fa-hdd"></i> ไดรฟ์ของฉัน</button>
-            <button class="nav-item" id="nav-trash" onclick="loadTrash()"><i class="fa fa-trash-alt"></i> ถังขยะ</button>
-            <button class="nav-item" onclick="createFolder()" style="color:var(--primary)"><i class="fa fa-folder-plus"></i> โฟลเดอร์ใหม่</button>
-        </nav>
-        <div class="storage-box">
-            <div id="storage-text">กำลังโหลดพื้นที่...</div>
-            <div class="p-bar-bg"><div id="storage-bar" class="p-bar-fill"></div></div>
-            <div onclick="logout()" style="cursor:pointer; color:var(--danger); margin-top:10px; font-size:13px;"><i class="fa fa-sign-out-alt"></i> ออกจากระบบ</div>
-        </div>
-    </aside>
-
-    <main class="main">
-        <div class="path-bar" id="path"> My Drive </div>
-        <div class="grid" id="grid"></div>
-    </main>
-
     <div id="upload-widget">
-        <div class="widget-header"><span>อัปโหลดไฟล์</span><i class="fa fa-times" onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer;"></i></div>
-        <div class="widget-body" id="upload-list"></div>
+        <div style="background: #333; color: white; padding: 10px 15px; font-size: 13px; display: flex; justify-content: space-between;">
+            <span>รายการอัปโหลด</span>
+            <i class="fa fa-times" onclick="this.parentElement.parentElement.style.display='none'" style="cursor: pointer;"></i>
+        </div>
+        <div id="upload-list" style="padding: 15px; max-height: 200px; overflow-y: auto;"></div>
     </div>
 
     <input type="file" id="f-upload" hidden multiple onchange="uploadWithProgress(this.files)">
@@ -139,14 +201,17 @@
 
         async function checkAuth() {
             try { 
-                await gapi.client.drive.about.get({fields:'user'}); 
+                const res = await gapi.client.drive.about.get({fields:'user'}); 
+                document.getElementById('user-info').innerText = res.result.user.displayName;
                 document.getElementById('loader').style.display='none'; 
-                loadDrive(); 
-                updateStorage(); 
+                loadDrive(); updateStorage(); 
             } catch(e) { showLogin(); }
         }
 
-        function showLogin() { document.getElementById('spinner').style.display='none'; document.getElementById('auth-ui').style.display='block'; }
+        function showLogin() { 
+            document.getElementById('loader').querySelector('i').style.display='none'; 
+            document.getElementById('auth-ui').style.display='block'; 
+        }
         function handleLogin() {
             google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive', 
                 callback: (r) => { localStorage.setItem('drive_token', r.access_token); location.reload(); }
@@ -155,7 +220,11 @@
 
         async function loadDrive(fid = currentFolder) {
             isTrashMode = false; currentFolder = fid; updateNav();
-            const res = await gapi.client.drive.files.list({ q: `'${fid}' in parents and trashed = false`, fields: 'files(id, name, mimeType, thumbnailLink, iconLink, webViewLink)' });
+            const res = await gapi.client.drive.files.list({ 
+                q: `'${fid}' in parents and trashed = false`, 
+                fields: 'files(id, name, mimeType, thumbnailLink, iconLink, webViewLink)',
+                orderBy: 'folder,name'
+            });
             render(res.result.files || []);
         }
 
@@ -173,16 +242,19 @@
                 <div class="card" onclick="select(event, ${JSON.stringify(f).replace(/"/g, '&quot;')})" 
                      ondblclick="${isF && !isTrashMode ? `enter('${f.id}','${f.name}')` : !isTrashMode ? `openPreview(${JSON.stringify(f).replace(/"/g, '&quot;')})` : ''}"
                      oncontextmenu="handleContext(event, ${JSON.stringify(f).replace(/"/g, '&quot;')})">
-                    <div class="preview-thumb">
-                        ${f.thumbnailLink ? `<img src="${f.thumbnailLink.replace('=s220','=s500')}">` : `<i class="fa ${isF?'fa-folder':'fa-file-alt'}" style="${isF?'color:#fbc02d':''}"></i>`}
+                    <div class="visual">
+                        ${f.thumbnailLink ? `<img src="${f.thumbnailLink.replace('=s220','=s600')}" loading="lazy">` : `<i class="fa ${isF?'fa-folder':'fa-file-alt'}"></i>`}
                     </div>
-                    <div class="info"><img src="${f.iconLink}" width="16"> <span>${f.name}</span></div>
+                    <div class="info">
+                        <img src="${f.iconLink}" width="16" style="filter: grayscale(0.5);"> 
+                        <span>${f.name}</span>
+                    </div>
                 </div>`;
             }).join('');
-            document.getElementById('path').innerHTML = isTrashMode ? 'ถังขยะ' : path.map((p,i)=>`<b onclick="jump(${i})">${p.name}</b>`).join(' > ');
+            document.getElementById('path').innerHTML = isTrashMode ? 'ถังขยะ' : path.map((p,i)=>`<b onclick="jump(${i})">${p.name}</b>`).join(' <i class="fa fa-angle-right" style="opacity:0.3"></i> ');
         }
 
-        // --- Core Logic ---
+        // --- Core Functions ---
         function select(e, item) {
             e.stopPropagation(); selectedItem = item;
             document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
@@ -194,66 +266,58 @@
             const m = document.getElementById('context-menu');
             m.style.display = 'block'; m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px';
             document.getElementById('m-restore').style.display = isTrashMode ? 'flex' : 'none';
-            document.getElementById('m-rename').style.display = isTrashMode ? 'none' : 'flex';
-            document.getElementById('m-copy').style.display = isTrashMode ? 'none' : 'flex';
         }
 
         async function uploadWithProgress(files) {
             document.getElementById('upload-widget').style.display='block';
+            const list = document.getElementById('upload-list');
             for (let f of files) {
                 const id = 'up-'+Math.random().toString(36).substr(2,9);
-                document.getElementById('upload-list').insertAdjacentHTML('afterbegin', `
-                    <div id="${id}" class="upload-item">
-                        <div style="display:flex; justify-content:space-between;"><span>${f.name}</span><span class="pct">0%</span></div>
-                        <div class="p-bar-bg"><div class="p-bar-fill" style="width:0%"></div></div>
-                    </div>`);
+                list.insertAdjacentHTML('afterbegin', `<div id="${id}" style="margin-bottom:12px; font-size:12px;">${f.name} <div class="p-bar-bg"><div class="p-bar-fill" style="width:0%; height:4px; background:var(--primary);"></div></div></div>`);
                 const fd = new FormData();
                 fd.append('metadata', new Blob([JSON.stringify({name: f.name, parents:[currentFolder]})], {type:'application/json'}));
                 fd.append('file', f);
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
                 xhr.setRequestHeader('Authorization', 'Bearer ' + gapi.client.getToken().access_token);
-                xhr.upload.onprogress = (e) => { 
-                    if(e.lengthComputable) {
-                        const p = Math.round(e.loaded/e.total*100);
-                        const el = document.getElementById(id);
-                        el.querySelector('.p-bar-fill').style.width = p+'%';
-                        el.querySelector('.pct').innerText = p+'%';
-                    }
-                };
+                xhr.upload.onprogress = (e) => { if(e.lengthComputable) document.getElementById(id).querySelector('.p-bar-fill').style.width = (e.loaded/e.total*100)+'%'; };
                 xhr.onload = () => { loadDrive(); updateStorage(); };
                 xhr.send(fd);
             }
         }
 
+        function openPreview(item) {
+            const modal = document.getElementById('preview-modal');
+            document.getElementById('preview-title').innerText = item.name;
+            const body = document.getElementById('preview-body');
+            modal.style.display = 'flex';
+            if (item.mimeType.includes('image')) body.innerHTML = `<img src="${item.thumbnailLink.replace('=s220','=s1200')}">`;
+            else body.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.id}/preview"></iframe>`;
+        }
+
         async function updateStorage() {
             const res = await gapi.client.drive.about.get({fields:'storageQuota'});
             const q = res.result.storageQuota;
-            document.getElementById('storage-text').innerText = (q.usage/1e9).toFixed(1)+' GB / '+(q.limit/1e9).toFixed(0)+' GB';
+            document.getElementById('storage-text').innerText = `ใช้ไป ${(q.usage/1e9).toFixed(1)} GB จาก ${(q.limit/1e9).toFixed(0)} GB`;
             document.getElementById('storage-bar').style.width = (q.usage/q.limit*100)+'%';
         }
 
         // --- File Operations ---
-        function openPreview(item) {
-            const modal = document.getElementById('preview-modal');
-            const body = document.getElementById('preview-body');
-            document.getElementById('preview-title').innerText = item.name;
-            modal.style.display = 'flex';
-            if (item.mimeType.includes('image')) body.innerHTML = `<img src="${item.thumbnailLink.replace('=s220','=s1000')}">`;
-            else body.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.id}/preview"></iframe>`;
-        }
-        function closePreview() { document.getElementById('preview-modal').style.display='none'; document.getElementById('preview-body').innerHTML=''; }
-        function hideMenu() { document.getElementById('context-menu').style.display='none'; }
-        function openItem() { selectedItem.mimeType.includes('folder') ? enter(selectedItem.id, selectedItem.name) : openPreview(selectedItem); }
         async function renameItem() { const n = prompt("ชื่อใหม่:", selectedItem.name); if(n) { await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { name: n } }); loadDrive(); } }
-        async function copyItem() { await gapi.client.drive.files.copy({ fileId: selectedItem.id, resource: { name: "สำเนาของ " + selectedItem.name } }); loadDrive(); }
+        async function copyItem() { await gapi.client.drive.files.copy({ fileId: selectedItem.id, resource: { name: "Copy of " + selectedItem.name } }); loadDrive(); }
         async function deleteItem() { if(confirm("ย้ายไปถังขยะ?")) { await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { trashed: true } }); loadDrive(); updateStorage(); } }
         async function restoreItem() { await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { trashed: false } }); loadTrash(); }
-        function shareLink() { navigator.clipboard.writeText(selectedItem.webViewLink); alert("คัดลอกลิงก์แล้ว"); }
-        async function createFolder() { const n = prompt("ชื่อโฟลเดอร์ใหม่:"); if(n) { await gapi.client.drive.files.create({resource:{name:n, mimeType:'application/vnd.google-apps.folder', parents:[currentFolder]}}); loadDrive(); } }
+        async function createFolder() { const n = prompt("ชื่อโฟลเดอร์:"); if(n) { await gapi.client.drive.files.create({resource:{name:n, mimeType:'application/vnd.google-apps.folder', parents:[currentFolder]}}); loadDrive(); } }
+        
+        // --- Navigation ---
         function enter(id, name) { path.push({id, name}); loadDrive(id); }
         function jump(i) { path = path.slice(0, i+1); loadDrive(path[i].id); }
-        function updateNav() { document.getElementById('nav-main').classList.toggle('active', !isTrashMode); document.getElementById('nav-trash').classList.toggle('active', isTrashMode); }
+        function hideMenu() { document.getElementById('context-menu').style.display='none'; }
+        function closePreview() { document.getElementById('preview-modal').style.display='none'; document.getElementById('preview-body').innerHTML=''; }
+        function updateNav() { 
+            document.getElementById('nav-main').classList.toggle('active', !isTrashMode);
+            document.getElementById('nav-trash').classList.toggle('active', isTrashMode);
+        }
         function logout() { localStorage.clear(); location.reload(); }
 
         window.onload = initApp;
