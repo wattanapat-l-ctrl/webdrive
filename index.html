@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drive Pro | Ultimate Master</title>
+    <title>Drive Pro | Upload Progress Edition</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,69 +15,46 @@
 
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: var(--bg); color: var(--text-main); overflow: hidden; }
 
-        /* Sidebar UI */
+        /* Sidebar & Layout */
         .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; flex-shrink: 0; }
         .nav-item { padding: 12px 16px; border-radius: 24px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-size: 14px; border: none; background: none; width: 100%; color: var(--text-sub); margin-bottom: 4px; transition: 0.2s; }
         .nav-item.active { background: #e8f0fe; color: var(--primary); font-weight: 600; }
         .nav-item:hover:not(.active) { background: rgba(0,0,0,0.05); }
 
-        /* Storage Bar */
-        .storage-box { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
-        .progress-bg { height: 4px; background: #ddd; border-radius: 2px; margin: 8px 0; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 2px; transition: width 0.5s ease; }
-
-        /* Main Workspace */
+        /* Workspace Grid */
         .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .path-bar { padding: 12px 24px; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; gap: 8px; align-items: center; background: white; z-index: 10; }
+        .path-bar { padding: 12px 24px; border-bottom: 1px solid var(--border); font-size: 14px; background: white; z-index: 10; }
         .path-bar b { cursor: pointer; color: var(--primary); }
-
-        /* Grid System (FIXED: ไม่บีบไฟล์) */
-        .grid { 
-            flex: 1; 
-            padding: 24px; 
-            overflow-y: auto; 
-            display: grid; 
-            /* กำหนดขนาดขั้นต่ำ 160px และให้ขยายได้ถ้ามีพื้นที่เหลือ แต่จะไม่บีบเล็กกว่านี้ */
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 20px; 
-            align-content: start; 
-        }
+        .grid { flex: 1; padding: 24px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; align-content: start; }
         
-        /* Card Styling */
-        .card { 
-            background: white; 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
-            cursor: pointer; 
-            position: relative; 
-            transition: 0.2s; 
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            aspect-ratio: 4/3.5; /* รักษารูปทรงของการ์ดให้คงที่ */
-        }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 4/3.5; }
         .card:hover { border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: translateY(-2px); }
         .card.selected { background: #e8f0fe; border-color: var(--primary); }
-
         .preview { flex: 1; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-bottom: 1px solid var(--border); overflow: hidden; }
         .preview i { font-size: 40px; color: #cfd8dc; }
         .preview img { width: 100%; height: 100%; object-fit: cover; }
+        .info { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+        .info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .info { padding: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; background: white; }
-        .info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-
-        /* Custom Context Menu */
-        #context-menu { 
-            position: fixed; background: white; border: 1px solid var(--border); border-radius: 8px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; z-index: 10000; min-width: 180px; padding: 6px 0;
+        /* UPLOAD PROGRESS WIDGET (NEW!) */
+        #upload-widget {
+            position: fixed; bottom: 20px; right: 20px; width: 320px;
+            background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            display: none; z-index: 50000; overflow: hidden; border: 1px solid var(--border);
         }
-        .menu-item { padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-main); }
-        .menu-item:hover { background: #f1f3f4; }
-        .menu-item.danger { color: var(--danger); }
+        .widget-header { background: #323232; color: white; padding: 12px 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .widget-body { padding: 16px; max-height: 250px; overflow-y: auto; }
+        .upload-item { margin-bottom: 12px; font-size: 13px; }
+        .upload-info { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .p-bar-bg { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+        .p-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
 
-        /* Utility */
-        .loader { position: fixed; inset: 0; background: white; z-index: 20000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 24px; border-radius: 8px; display: none; z-index: 30000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        /* Context Menu & Global UI */
+        #context-menu { position: fixed; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; z-index: 10000; min-width: 180px; padding: 6px 0; }
+        .menu-item { padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+        .menu-item:hover { background: #f1f3f4; }
+        .loader { position: fixed; inset: 0; background: white; z-index: 60000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .storage-box { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
     </style>
 </head>
 <body onclick="hideMenu()" oncontextmenu="return false;">
@@ -85,38 +62,43 @@
     <div id="loader" class="loader">
         <div id="auth-ui" style="display:none; text-align:center;">
             <i class="fab fa-google-drive fa-4x" style="color:var(--primary); margin-bottom:20px;"></i>
-            <h2>ยินดีต้อนรับสู่ Drive Pro</h2>
-            <button onclick="handleLogin()" style="padding:12px 24px; border-radius:24px; border:1px solid var(--primary); background:white; color:var(--primary); cursor:pointer; font-weight:600;">เข้าสู่ระบบด้วย Google</button>
+            <h2>Drive Pro</h2>
+            <button onclick="handleLogin()" style="padding:12px 24px; border-radius:24px; border:1px solid var(--primary); background:white; color:var(--primary); cursor:pointer;">Login with Google</button>
         </div>
-        <div id="spinner"><i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary)"></i></div>
+        <i class="fas fa-circle-notch fa-spin fa-3x" id="spinner" style="color:var(--primary)"></i>
+    </div>
+
+    <div id="upload-widget">
+        <div class="widget-header">
+            <span id="widget-title">กำลังอัปโหลด...</span>
+            <i class="fa fa-times" style="cursor:pointer" onclick="this.parentElement.parentElement.style.display='none'"></i>
+        </div>
+        <div class="widget-body" id="upload-list">
+            </div>
     </div>
 
     <div id="context-menu">
-        <div id="m-open" class="menu-item" onclick="openItem()"><i class="fa fa-folder-open"></i> เปิด</div>
-        <div id="m-rename" class="menu-item" onclick="renameItem()"><i class="fa fa-edit"></i> เปลี่ยนชื่อ</div>
-        <div id="m-copy" class="menu-item" onclick="copyItem()"><i class="fa fa-copy"></i> ทำสำเนา</div>
-        <div id="m-link" class="menu-item" onclick="shareLink()"><i class="fa fa-link"></i> คัดลอกลิงก์</div>
+        <div class="menu-item" onclick="openItem()"><i class="fa fa-folder-open"></i> เปิด</div>
+        <div class="menu-item" onclick="renameItem()"><i class="fa fa-edit"></i> เปลี่ยนชื่อ</div>
+        <div class="menu-item" onclick="copyItem()"><i class="fa fa-copy"></i> ทำสำเนา</div>
+        <div class="menu-item" onclick="shareLink()"><i class="fa fa-link"></i> คัดลอกลิงก์</div>
         <div id="m-restore" class="menu-item" style="display:none;" onclick="restoreItem()"><i class="fa fa-undo"></i> กู้คืน</div>
-        <div id="m-del" class="menu-item danger" onclick="deleteItem()"><i class="fa fa-trash"></i> ลบ</div>
-        <div id="m-perm" class="menu-item danger" style="display:none;" onclick="permanentDelete()"><i class="fa fa-warning"></i> ลบถาวร</div>
+        <div class="menu-item" onclick="deleteItem()" style="color:red;"><i class="fa fa-trash"></i> ลบ</div>
     </div>
 
     <aside class="sidebar">
-        <h2 style="color:var(--primary); padding-left:10px;"><i class="fab fa-google-drive"></i> Drive Pro</h2>
-        
-        <button onclick="document.getElementById('f-upload').click()" style="background:white; border:1px solid var(--border); padding:14px; border-radius:28px; cursor:pointer; display:flex; align-items:center; gap:12px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.1); font-weight:600;">
+        <h2 style="color:var(--primary);"><i class="fab fa-google-drive"></i> Drive Pro</h2>
+        <button onclick="document.getElementById('f-upload').click()" style="background:white; border:1px solid var(--border); padding:14px; border-radius:28px; cursor:pointer; display:flex; align-items:center; gap:12px; margin-bottom:20px; font-weight:600;">
             <i class="fa fa-plus" style="color:var(--primary)"></i> อัปโหลดไฟล์
         </button>
-
         <nav>
             <button class="nav-item active" id="nav-main" onclick="loadDrive()"><i class="fa fa-hdd"></i> ไดรฟ์ของฉัน</button>
             <button class="nav-item" id="nav-trash" onclick="loadTrash()"><i class="fa fa-trash-alt"></i> ถังขยะ</button>
-            <button class="nav-item" onclick="createFolder()" style="color:var(--primary);"><i class="fa fa-folder-plus"></i> โฟลเดอร์ใหม่</button>
+            <button class="nav-item" onclick="createFolder()"><i class="fa fa-folder-plus"></i> โฟลเดอร์ใหม่</button>
         </nav>
-
         <div class="storage-box">
-            <div id="storage-text">พื้นที่ที่ใช้: กำลังโหลด...</div>
-            <div class="progress-bg"><div id="storage-bar" class="progress-fill"></div></div>
+            <div id="storage-text">Loading storage...</div>
+            <div style="height:4px; background:#ddd; margin:8px 0;"><div id="storage-bar" style="height:100%; background:var(--primary); width:0%;"></div></div>
             <div onclick="logout()" style="cursor:pointer; color:var(--danger); margin-top:10px;"><i class="fa fa-sign-out-alt"></i> ออกจากระบบ</div>
         </div>
     </aside>
@@ -126,13 +108,11 @@
         <div class="grid" id="grid"></div>
     </main>
 
-    <input type="file" id="f-upload" name="file-upload" hidden multiple onchange="uploadFiles(this.files)">
-    <div id="toast" class="toast"></div>
+    <input type="file" id="f-upload" hidden multiple onchange="uploadWithProgress(this.files)">
 
     <script>
         const API_KEY = 'AIzaSyCokJR-ZdO0gUqurZbZfNTBmb12aOlXQHA';
         const CLIENT_ID = '914130530338-l7anrm3o0gp1rjekep18sm2pehhlsofp.apps.googleusercontent.com';
-        
         let currentFolder = 'root', path = [{id:'root', name:'My Drive'}], selectedItem = null, isTrashMode = false;
 
         function initApp() {
@@ -145,12 +125,8 @@
         }
 
         async function checkAuth() {
-            try {
-                await gapi.client.drive.about.get({fields:'user'});
-                document.getElementById('loader').style.display='none';
-                loadDrive();
-                updateStorage();
-            } catch(e) { showLogin(); }
+            try { await gapi.client.drive.about.get({fields:'user'}); document.getElementById('loader').style.display='none'; loadDrive(); updateStorage(); }
+            catch(e) { showLogin(); }
         }
 
         function showLogin() { document.getElementById('spinner').style.display='none'; document.getElementById('auth-ui').style.display='block'; }
@@ -161,16 +137,13 @@
         }
 
         async function loadDrive(fid = currentFolder) {
-            isTrashMode = false;
-            currentFolder = fid;
-            updateNav();
+            isTrashMode = false; currentFolder = fid; updateNav();
             const res = await gapi.client.drive.files.list({ q: `'${fid}' in parents and trashed = false`, fields: 'files(id, name, mimeType, thumbnailLink, iconLink)' });
             render(res.result.files || []);
         }
 
         async function loadTrash() {
-            isTrashMode = true;
-            updateNav();
+            isTrashMode = true; updateNav();
             const res = await gapi.client.drive.files.list({ q: `trashed = true`, fields: 'files(id, name, mimeType, thumbnailLink, iconLink)' });
             render(res.result.files || []);
         }
@@ -186,106 +159,68 @@
                     <div class="preview">
                         ${f.thumbnailLink && !isF ? `<img src="${f.thumbnailLink.replace('=s220','=s500')}">` : `<i class="${isF?'fa fa-folder':'fa fa-file-alt'}" style="${isF?'color:#fbc02d':''}"></i>`}
                     </div>
-                    <div class="info">
-                        <img src="${f.iconLink}" width="16" height="16">
-                        <span>${f.name}</span>
-                    </div>
+                    <div class="info"><img src="${f.iconLink}" width="16"> <span>${f.name}</span></div>
                 </div>`;
             }).join('');
-            document.getElementById('path').innerHTML = isTrashMode ? 'ถังขยะ' : path.map((p,i)=>`<b onclick="jump(${i})">${p.name}</b>`).join(' <i class="fa fa-chevron-right" style="font-size:10px; color:#ccc;"></i> ');
+            document.getElementById('path').innerHTML = isTrashMode ? 'ถังขยะ' : path.map((p,i)=>`<b onclick="jump(${i})">${p.name}</b>`).join(' > ');
         }
 
-        function select(e, item) {
-            e.stopPropagation(); selectedItem = item;
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-            e.currentTarget.classList.add('selected');
-        }
+        // --- NEW: UPLOAD WITH PROGRESS BAR ---
+        async function uploadWithProgress(files) {
+            const widget = document.getElementById('upload-widget');
+            const list = document.getElementById('upload-list');
+            widget.style.display = 'block';
 
-        function handleContext(e, item) {
-            e.preventDefault(); e.stopPropagation(); select(e, item);
-            const m = document.getElementById('context-menu');
-            m.style.display = 'block'; m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px';
-            
-            document.getElementById('m-restore').style.display = isTrashMode ? 'flex' : 'none';
-            document.getElementById('m-perm').style.display = isTrashMode ? 'flex' : 'none';
-            document.getElementById('m-rename').style.display = isTrashMode ? 'none' : 'flex';
-            document.getElementById('m-copy').style.display = isTrashMode ? 'none' : 'flex';
-            document.getElementById('m-link').style.display = isTrashMode ? 'none' : 'flex';
-            document.getElementById('m-del').style.display = isTrashMode ? 'none' : 'flex';
-        }
+            for (let file of files) {
+                const itemId = 'up-' + Math.random().toString(36).substr(2, 9);
+                list.insertAdjacentHTML('afterbegin', `
+                    <div class="upload-item" id="${itemId}">
+                        <div class="upload-info"><span>${file.name}</span><span class="pct">0%</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill"></div></div>
+                    </div>
+                `);
 
-        async function renameItem() {
-            const n = prompt("ชื่อใหม่:", selectedItem.name);
-            if(n && n !== selectedItem.name) {
-                await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { name: n } });
-                refresh(); showToast("เปลี่ยนชื่อแล้ว");
+                const token = gapi.client.getToken().access_token;
+                const metadata = { name: file.name, parents: [currentFolder] };
+                
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', file);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        const el = document.getElementById(itemId);
+                        el.querySelector('.pct').innerText = percent + '%';
+                        el.querySelector('.p-bar-fill').style.width = percent + '%';
+                    }
+                };
+
+                xhr.onload = () => {
+                    document.getElementById(itemId).querySelector('.pct').innerHTML = '<i class="fa fa-check-circle" style="color:green"></i>';
+                    loadDrive();
+                    updateStorage();
+                };
+                
+                xhr.send(formData);
             }
         }
 
-        async function copyItem() {
-            await gapi.client.drive.files.copy({ fileId: selectedItem.id, resource: { name: "สำเนาของ " + selectedItem.name } });
-            refresh(); showToast("ทำสำเนาแล้ว");
-        }
-
-        async function deleteItem() {
-            if(confirm("ย้ายไปถังขยะ?")) {
-                await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { trashed: true } });
-                refresh(); updateStorage();
-            }
-        }
-
-        async function permanentDelete() {
-            if(confirm("ลบถาวร? (ไม่สามารถกู้คืนได้)")) {
-                await gapi.client.drive.files.delete({ fileId: selectedItem.id });
-                refresh(); updateStorage();
-            }
-        }
-
-        async function restoreItem() {
-            await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { trashed: false } });
-            refresh(); showToast("กู้คืนไฟล์แล้ว");
-        }
-
-        async function uploadFiles(files) {
-            const token = gapi.client.getToken().access_token;
-            for(let f of files) {
-                showToast(`อัปโหลด ${f.name}...`);
-                const meta = { name: f.name, parents: [currentFolder] };
-                const fd = new FormData();
-                fd.append('metadata', new Blob([JSON.stringify(meta)], {type:'application/json'}));
-                fd.append('file', f);
-                await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body:fd });
-            }
-            refresh(); updateStorage(); showToast("อัปโหลดสำเร็จ");
-        }
-
-        async function updateStorage() {
-            try {
-                const res = await gapi.client.drive.about.get({fields: 'storageQuota'});
-                const q = res.result.storageQuota;
-                const used = (q.usage / (1024**3)).toFixed(1);
-                const total = (q.limit / (1024**3)).toFixed(0);
-                const percent = (q.usage / q.limit) * 100;
-                document.getElementById('storage-text').innerText = `ใช้ไป ${used} GB จาก ${total} GB`;
-                document.getElementById('storage-bar').style.width = percent + '%';
-            } catch(e) {}
-        }
-
-        function refresh() { isTrashMode ? loadTrash() : loadDrive(); }
-        function openItem() { selectedItem.mimeType.includes('folder') ? enter(selectedItem.id, selectedItem.name) : openFile(selectedItem.id); }
-        function openFile(id) { window.open(`https://drive.google.com/file/d/${id}/view`); }
-        function shareLink() { navigator.clipboard.writeText(`https://drive.google.com/file/d/${selectedItem.id}/view?usp=sharing`); showToast("คัดลอกลิงก์แล้ว"); }
+        // --- Helpers ---
+        function select(e, item) { e.stopPropagation(); selectedItem = item; document.querySelectorAll('.card').forEach(c => c.classList.remove('selected')); e.currentTarget.classList.add('selected'); }
+        function handleContext(e, item) { e.preventDefault(); e.stopPropagation(); select(e, item); const m = document.getElementById('context-menu'); m.style.display = 'block'; m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px'; }
+        async function deleteItem() { if(confirm("ย้ายไปถังขยะ?")) { await gapi.client.drive.files.update({ fileId: selectedItem.id, resource: { trashed: true } }); loadDrive(); updateStorage(); } }
+        async function updateStorage() { const res = await gapi.client.drive.about.get({fields:'storageQuota'}); const q = res.result.storageQuota; const p = (q.usage/q.limit)*100; document.getElementById('storage-text').innerText = (q.usage/1e9).toFixed(1)+'GB / '+(q.limit/1e9).toFixed(0)+'GB'; document.getElementById('storage-bar').style.width = p+'%'; }
         function enter(id, name) { path.push({id, name}); loadDrive(id); }
         function jump(i) { path = path.slice(0, i+1); loadDrive(path[i].id); }
-        function goHome() { path = [{id:'root', name:'My Drive'}]; loadDrive('root'); }
-        async function createFolder() { const n = prompt("ชื่อโฟลเดอร์:"); if(n) { await gapi.client.drive.files.create({resource:{name:n, mimeType:'application/vnd.google-apps.folder', parents:[currentFolder]}}); loadDrive(); } }
+        function openFile(id) { window.open(`https://drive.google.com/file/d/${id}/view`); }
         function hideMenu() { document.getElementById('context-menu').style.display='none'; }
-        function updateNav() { 
-            document.getElementById('nav-main').classList.toggle('active', !isTrashMode);
-            document.getElementById('nav-trash').classList.toggle('active', isTrashMode);
-        }
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none',3000); }
         function logout() { localStorage.clear(); location.reload(); }
+        function updateNav() { document.getElementById('nav-main').classList.toggle('active', !isTrashMode); document.getElementById('nav-trash').classList.toggle('active', isTrashMode); }
 
         window.onload = initApp;
     </script>
